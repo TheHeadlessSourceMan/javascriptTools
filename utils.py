@@ -1,9 +1,16 @@
+"""
+General purpose css utilities
+"""
 import typing
+from htmlTools import (
+    HtmlCompatible,asHtml,Html,isPlaintextCompatible,PlaintextCompatible,Text)
 from  .javascript import Javascript
-from htmlTools import HtmlCompatible,asHtml,Html,isPlaintextCompatible,PlaintextCompatible,Text
 
 
-def jsAddCssRules(cssRules:typing.Union[str,typing.Iterable[str]],noAddStyleTag:bool=False)->Javascript:
+def jsAddCssRules(
+    cssRules:typing.Union[str,typing.Iterable[str]],
+    noAddStyleTag:bool=False
+    )->Javascript:
     """
     Generates javascript to add css rules to the document.
 
@@ -32,7 +39,10 @@ def jsAddCssRules(cssRules:typing.Union[str,typing.Iterable[str]],noAddStyleTag:
     return Javascript('\n'.join(ret))
 
 
-def jsAddJavascript(javascript:typing.Union[Javascript,str],noAddScriptTag:bool=False)->Javascript:
+def jsAddJavascript(
+    javascript:typing.Union[Javascript,str],
+    noAddScriptTag:bool=False
+    )->Javascript:
     """
     Generates javascript to add javascript items to the document.
 
@@ -62,7 +72,10 @@ def jsAddJavascript(javascript:typing.Union[Javascript,str],noAddScriptTag:bool=
     return Javascript(''.join(ret))
 
 
-def jsAddHtml(html:HtmlCompatible,parentNodeId:str=None)->Javascript:
+def jsAddHtml(
+    html:HtmlCompatible,
+    parentNodeId:typing.Optional[str]=None
+    )->Javascript:
     """
     :param parentNodeId: if None, will add to the end of <body>
     """
@@ -77,7 +90,11 @@ def jsAddHtml(html:HtmlCompatible,parentNodeId:str=None)->Javascript:
     return Javascript('\n'.join(ret))
 
 
-def setElementContents(elementId:str,html:HtmlCompatible=None,plaintext:PlaintextCompatible=None):
+def setElementContents(
+    elementId:str,
+    html:typing.Optional[HtmlCompatible]=None,
+    plaintext:typing.Optional[PlaintextCompatible]=None
+    )->Javascript:
     """
     Shortcut to creating javascript to assign the contents of an element
 
@@ -97,8 +114,9 @@ def setElementContents(elementId:str,html:HtmlCompatible=None,plaintext:Plaintex
 
 
 def appendElementContents(elementId:str,
-    html:HtmlCompatible=None,
-    plaintext:PlaintextCompatible=None)->Javascript:
+    html:typing.Optional[HtmlCompatible]=None,
+    plaintext:typing.Optional[PlaintextCompatible]=None
+    )->Javascript:
     """
     Shortcut to creating javascript to assign the contents of an element
 
@@ -117,7 +135,9 @@ def appendElementContents(elementId:str,
     return js
 
 
-def toJsString(text:typing.Union[PlaintextCompatible,typing.Any]):
+def toJsString(
+    text:typing.Union[PlaintextCompatible,typing.Any]
+    )->str:
     """
     Returns a text object (or any object) as a porperly-escaped javascript string.
 
@@ -135,8 +155,9 @@ def toJsString(text:typing.Union[PlaintextCompatible,typing.Any]):
         text=str(text)
     else:
         text=str(text)
-    text=text.replace('\\','\\\\')
-    text=text.replace('\'','\\\'')
-    text=text.replace('\n','\\n')
-    text=text.replace('\r','')
-    return '\''+text+'\''
+    text=text \
+        .replace('\\','\\\\') \
+        .replace('\'','\\\'') \
+        .replace('\n','\\n') \
+        .replace('\r','')
+    return f"'{text}'"

@@ -1,3 +1,6 @@
+"""
+A helper for javascript functions
+"""
 import typing
 import re
 import xml.dom.minidom
@@ -20,11 +23,15 @@ class JsHelper:
             return fns
         else:
             head=head[0]
-        scriptTags=head.getElementsByTagName('script')
+        scriptTags:typing.Iterable[DomElementType]=head.getElementsByTagName('script')
         for scriptTag in scriptTags:
-            if scriptTag.getAttribute('language').lower()!='javascript' and scriptTag.getAttribute('type').lower()!='text/javascript':
+            if scriptTag.getAttribute('language').lower()!='javascript' \
+                and scriptTag.getAttribute('type').lower()!='text/javascript':
                 continue
-            moreFns:typing.Dict[str,str]=self.GetFunctionsFromCodeString(scriptTag.childNodes[0].nodeValue)
+            code=scriptTag.childNodes[0].nodeValue
+            if code is None:
+                code=''
+            moreFns:typing.Dict[str,str]=self.GetFunctionsFromCodeString(code)
             for k,v in moreFns.items():
                 fns[k]=v
         return fns
@@ -36,7 +43,9 @@ class JsHelper:
         scriptTags=dom.getElementsByTagName('script')
         hh=HtmlHelper()
         for scriptTag in scriptTags:
-            if scriptTag.getAttribute('language').lower()!='javascript' and scriptTag.getAttribute('type').lower()!='text/javascript':
+            if scriptTag.getAttribute('language').lower()!='javascript' \
+                and scriptTag.getAttribute('type').lower()!='text/javascript':
+                #
                 if scriptTag.getAttribute('language') and scriptTag.getAttribute('type'):
                     continue # Some other kind of script.  Ignore it.
             # make sure the type identification is correct
@@ -84,16 +93,19 @@ class JsHelper:
 
         TODO: preserve global vars!
         """
+        domDocument=dom.ownerDocument
+        if domDocument is None:
+            raise Exception('No document assoicated with HTML')
         head=dom.getElementsByTagName('head')
         if head is None or len(head)<1:
-            head=dom.createElement('head')
+            head=domDocument.createElement('head')
             dom.getElementsByTagName('html')[0].appendChild(head)
         else:
             head=head[0]
         first=True
         scriptTags=head.getElementsByTagName('script')
         if scriptTags is None or len(scriptTags)<1:
-            scriptTag=dom.createElement('script')
+            scriptTag=domDocument.createElement('script')
             scriptTag.setAttribute('language','JavaScript')
             scriptTag.setAttribute('type','text/javascript')
             head.appendChild(scriptTag)
@@ -101,11 +113,11 @@ class JsHelper:
         for scriptTag in scriptTags:
             if first:
                 codeString=''
-                for k,v in list(fnDict.items()):
+                for v in fnDict.values():
                     codeString='\n'+v+'\n'
                 while scriptTag.childNodes.length>0:
                     scriptTag.removeChild(scriptTag.childNodes[0])
-                scriptTag.appendChild(dom.createTextNode(codeString))
+                scriptTag.appendChild(domDocument.createTextNode(codeString))
                 first=False
             else:
                 head.removeChild(scriptTag)

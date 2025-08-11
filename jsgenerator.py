@@ -5,9 +5,14 @@ This class contains utility functions which return Javascript code
 to perform common and powerful tasks.
 """
 import typing
-from colorTools import Color
 from paths import UrlCompatible,asURL
 from htmlTools import Html
+try:
+    from colorTools import Color # type: ignore
+    hasColorTools=True
+except ImportError:
+    Color=str
+    hasColorTools=False
 import javascriptTools
 
 
@@ -31,7 +36,8 @@ class JavascriptGenerator:
         js=f'document.getElementById({javascriptTools.toJsString(elementId)})'
         return javascriptTools.Javascript(js)
 
-    def _window(self,windowName:str=None
+    def _window(self,
+        windowName:typing.Optional[str]=None
         )->javascriptTools.Javascript:
         """
         Gets a window opened by Python
@@ -41,7 +47,7 @@ class JavascriptGenerator:
         Usage: def setLocation(url,windowName=None): return _window(windowName)+'location='+url
         """
         if windowName is None:
-            return ''
+            return javascriptTools.Javascript('')
         return javascriptTools.Javascript(f'py_windows[{javascriptTools.toJsString(windowName)}]')
 
     def addJavascriptFunction(self,fn:str
@@ -137,7 +143,9 @@ class JavascriptGenerator:
         canvasId=canvasId.replace("'","\\'")
         return javascriptTools.Javascript(self._element(canvasId)+".getContext('2d')")
 
-    def canvasFillRect(self,canvasId:str,x:int,y:int,w:int,h:int,color:Color=None
+    def canvasFillRect(self,canvasId:str,
+        x:int,y:int,w:int,h:int,
+        color:typing.Optional[Color]=None # type: ignore
         )->javascriptTools.Javascript:
         """
         fill a rectangular section
@@ -168,12 +176,16 @@ class JavascriptGenerator:
         params=','.join([str(p) for p in (x,y,w,h)])
         return javascriptTools.Javascript(f"{canvasContext}.clearRect({params});")
 
-    def canvasShape(self,canvasId:str,
-        points:typing.Iterable[typing.Tuple[int,int]],close:bool=False,fill:bool=False
+    def canvasShape(self,
+        canvasId:str,
+        points:typing.Iterable[typing.Tuple[int,int]],
+        close:bool=False,
+        fill:bool=False
         )->javascriptTools.Javascript:
         """
         points is an array of 2-value arrays
         """
+        points=list(points)
         canvasContext=self.canvasContext(canvasId)
         retval=[f"var ctx={canvasContext};"]
         retval.append("ctx.beginPath();")
@@ -188,19 +200,23 @@ class JavascriptGenerator:
         return javascriptTools.Javascript('\n'.join(retval))
 
     def canvasArc(self,canvasId:str,
-        x:int,y:int,radius:float,close:bool=False,fill:bool=False,
-        startAngle:float=0,endAngle:float=360,counterClockwise:bool=False
+        x:int,y:int,
+        radius:float,
+        close:bool=False,
+        fill:bool=False,
+        startAngle:float=0,endAngle:float=360,
+        counterClockwise:bool=False
         )->javascriptTools.Javascript:
         """
         draw an arc/circle/pieslice
         """
         canvasContext=self.canvasContext(canvasId)
         if counterClockwise:
-            counterClockwise="true"
+            counterClockwiseStr="true"
         else:
-            counterClockwise="false"
-        arcParams=[str(p) for p in (x,y,radius,startAngle,endAngle,counterClockwise)]
-        retval=[f"var ctx={canvasContext(canvasId)};"]
+            counterClockwiseStr="false"
+        arcParams=[str(p) for p in (x,y,radius,startAngle,endAngle,counterClockwiseStr)]
+        retval=[f"var ctx={canvasContext};"]
         retval.append("ctx.beginPath();")
         retval.append(f"arc({arcParams});")
         if fill or close:
@@ -210,20 +226,26 @@ class JavascriptGenerator:
         retval.append("ctx.strokePath();")
         return javascriptTools.Javascript('\n'.join(retval))
 
-    def canvasFillStyle(self,canvasId:str,color:Color=None
+    def canvasFillStyle(self,canvasId:str,
+        color:typing.Optional[Color]=None # type: ignore
         )->javascriptTools.Javascript:
         """
         set the current fill style for the given canvas
         """
         canvasContext=self.canvasContext(canvasId)
-        if color.hasAlpha:
-            js=f"{canvasContext}.fillStyle='rgba(%d,%d,%d,%d)';"%color
+        if hasColorTools:
+            if color.hasAlpha: # type: ignore
+                js=f"{canvasContext}.fillStyle='rgba(%d,%d,%d,%d)';"%color
+            else:
+                js=f"{canvasContext}.fillStyle='rgba(%d,%d,%d)';"%color
         else:
-            js=f"{canvasContext}.fillStyle='rgba(%d,%d,%d)';"%color
+            js=f"{canvasContext}.fillStyle='rgba(%s)';"%color
         return javascriptTools.Javascript(js)
 
     def canvasFillStyleGradient(self,
-        canvasId:str,startColor:Color,endColor:Color,
+        canvasId:str,
+        startColor:typing.Optional[Color], # type: ignore
+        endColor:typing.Optional[Color], # type: ignore
         x:int=0,y:int=0,x2:int=100,y2:int=100,
         moreColors=None
         )->javascriptTools.Javascript:
@@ -244,21 +266,27 @@ class JavascriptGenerator:
         retval.append("ctx.fillStyle=gradient';")
         return javascriptTools.Javascript('\n'.join(retval))
 
-    def canvasStrokeStyle(self,canvasId:str,color:Color=None
+    def canvasStrokeStyle(self,canvasId:str,
+        color:typing.Optional[Color]=None # type: ignore
         )->javascriptTools.Javascript:
         """
         set the current stroke style for the given canvas
         """
         canvasContext=self.canvasContext(canvasId)
-        if color.hasAlpha:
-            js=f"{canvasContext}.strokeStyle='rgba(%d,%d,%d,%d)';"%color
+        if hasColorTools:
+            if color.hasAlpha: # type: ignore
+                js=f"{canvasContext}.strokeStyle='rgba(%d,%d,%d,%d)';"%color
+            else:
+                js=f"{canvasContext}.strokeStyle='rgba(%d,%d,%d)';"%color
         else:
-            js=f"{canvasContext}.strokeStyle='rgba(%d,%d,%d)';"%color
+            js=f"{canvasContext}.strokeStyle='rgba(%s)';"%color
         return javascriptTools.Javascript(js)
 
     def canvasBlitImage(self,canvasId:str,imageId:str,
-        x:int,y:int,w:int=None,h:int=None,
-        dx:int=None,dy:int=None,dw:int=None,dh:int=None
+        x:int,y:int,
+        w:typing.Optional[int]=None,h:typing.Optional[int]=None,
+        dx:typing.Optional[int]=None,dy:typing.Optional[int]=None,
+        dw:typing.Optional[int]=None,dh:typing.Optional[int]=None
         )->javascriptTools.Javascript:
         """
         Blit an already existing image to this canvas
@@ -302,7 +330,7 @@ class JavascriptGenerator:
 
     def promptBox(self,
         text:typing.Dict[str,typing.Any],
-        default:typing.Dict[str,typing.Any]=''
+        default:str=''
         )->javascriptTools.Javascript:
         """
         bring up a simple prompt dialog
@@ -312,11 +340,12 @@ class JavascriptGenerator:
 
     def browseToPage(self,
         url:UrlCompatible,
-        cgiParams:typing.Dict[str,typing.Any]=None,
-        windowName:str=None
+        cgiParams:typing.Optional[typing.Dict[str,typing.Any]]=None,
+        windowName:typing.Optional[str]=None
         )->javascriptTools.Javascript:
         """
-        You can either specify the whole thing manually in url or set url to the base page and then
+        You can either specify the whole thing manually in url
+        or set url to the base page and then
         give a dictionary of cgi parameters to set.
 
         TODO: This does not yet handle proper URL encoding!
@@ -332,13 +361,16 @@ class JavascriptGenerator:
         js=f'{self._window(windowName)}.location="{javascriptTools.toJsString(url)}";'
         return javascriptTools.Javascript(js)
 
-    def printPage(self,windowName:str=None)->javascriptTools.Javascript:
+    def printPage(self,windowName:typing.Optional[str]=None)->javascriptTools.Javascript:
         """
         send the current page to the printer
         """
         return javascriptTools.Javascript(f'{self._window(windowName)}.print();')
 
-    def setStatusText(self,text:str,windowName:str=None)->javascriptTools.Javascript:
+    def setStatusText(self,
+        text:str,
+        windowName:typing.Optional[str]=None
+        )->javascriptTools.Javascript:
         """
         set the current page status
 
@@ -349,9 +381,10 @@ class JavascriptGenerator:
 
     def createWindow(self,
         windowName:str,url:UrlCompatible,
-        x:int=None,y:int=None,w:int=None,h:int=None,
+        x:typing.Optional[int]=None,y:typing.Optional[int]=None,
+        w:typing.Optional[int]=None,h:typing.Optional[int]=None,
         resizable:bool=True,menubar:bool=True,status:bool=True,toolbar:bool=True,
-        cgiParams:typing.Dict[str,typing.Any]=None
+        cgiParams:typing.Optional[typing.Dict[str,typing.Any]]=None
         )->javascriptTools.Javascript:
         """
         TODO: Url is not encoded properly
