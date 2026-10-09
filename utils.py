@@ -4,7 +4,7 @@ General purpose css utilities
 import typing
 from htmlTools import (
     HtmlCompatible,asHtml,Html,isPlaintextCompatible,PlaintextCompatible,Text)
-from  .javascript import Javascript
+from .javascript import Javascript
 
 
 def jsAddCssRules(
@@ -16,13 +16,13 @@ def jsAddCssRules(
 
     Will add <style> tag to the document's <head> if necessary.
 
-    :param noAddStyleTag: can turn off checking for the <style> tag for efficiency
-        if we already know there is one there
+    :param noAddStyleTag: can turn off checking for the <style>
+        tag for efficiency if we already know there is one there
 
     See also:
         https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/styleSheets
     """
-    ret=[]
+    ret:typing.List[str]=[]
     if not noAddStyleTag:
         ret.append(r"""
         if(window.document.styleSheets.length<1){
@@ -35,7 +35,7 @@ def jsAddCssRules(
         cssRules=cssRules.split('\n')
     for cssRule in cssRules:
         cssRule="'%s'"%(cssRule.replace("'","\\'"))
-        ret.append(r"""css.insertRule("""+cssRule+r""",css.cssRules.length);""")
+        ret.append(r"""css.insertRule("""+cssRule+r""",css.cssRules.length);""") # noqa: E501
     return Javascript('\n'.join(ret))
 
 
@@ -48,14 +48,14 @@ def jsAddJavascript(
 
     Will add <script> tag to the document's <head> if necessary.
 
-    :param noAddScriptTag: can turn off checking for the <script> tag for efficiency
-        if we already know there is one there
+    :param noAddScriptTag: can turn off checking for the <script> tag
+        for efficiency if we already know there is one there
 
     See also:
         https://developer.mozilla.org/en-US/docs/Web/API/Document/scripts
         https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement
     """
-    ret=[]
+    ret:typing.List[str]=[]
     if not noAddScriptTag:
         ret.append(r"""
         if(window.document.scripts.length<1){
@@ -66,7 +66,10 @@ def jsAddJavascript(
     if isinstance(javascript,(list,tuple)):
         javascript='\n'.join(javascript)
     ret.append(r"""javascript.appendChild(document.createTextNode('""")
-    javascript=javascript.replace('\\','\\\\').replace('\n','\\n').replace("\'","\\'")
+    javascript=javascript\
+        .replace('\\','\\\\')\
+        .replace('\n','\\n')\
+        .replace("\'","\\'")
     ret.append(javascript)
     ret.append(r"""'));""")
     return Javascript(''.join(ret))
@@ -80,7 +83,7 @@ def jsAddHtml(
     :param parentNodeId: if None, will add to the end of <body>
     """
     html=asHtml(html) # use all Html object goodies
-    ret=[]
+    ret:typing.List[str]=[]
     if parentNodeId is None:
         ret.append('node=document.body;')
     else:
@@ -99,7 +102,8 @@ def setElementContents(
     Shortcut to creating javascript to assign the contents of an element
 
     :param html: assign this html to the element contents
-    :param plaintext: if html is not set, convert text to html and assign to element contents
+    :param plaintext: if html is not set, convert text to html and assign
+        to element contents
 
     returns javascript
     """
@@ -121,7 +125,8 @@ def appendElementContents(elementId:str,
     Shortcut to creating javascript to assign the contents of an element
 
     :param html: assign this html to the element contents
-    :param plaintext: if html is not set, convert text to html and assign to element contents
+    :param plaintext: if html is not set, convert text to html and assign
+        to element contents
 
     returns javascript
     """
@@ -139,7 +144,8 @@ def toJsString(
     text:typing.Union[PlaintextCompatible,typing.Any]
     )->str:
     """
-    Returns a text object (or any object) as a porperly-escaped javascript string.
+    Returns a text object (or any object) as a porperly-escaped
+    javascript string.
 
     Will prefer to get something that is compatible with Text objects,
     but if all else fails, will do a string conversion on an object.

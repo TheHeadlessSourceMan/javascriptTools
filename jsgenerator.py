@@ -31,7 +31,8 @@ class JavascriptGenerator:
     def _element(self,elementId:str
         )->javascriptTools.Javascript:
         """
-        Helper function that turns an element id into a javascript element object
+        Helper function that turns an element id into a javascript
+        element object
         """
         js=f'document.getElementById({javascriptTools.toJsString(elementId)})'
         return javascriptTools.Javascript(js)
@@ -44,28 +45,34 @@ class JavascriptGenerator:
 
         If windowName is None, returns empty string
 
-        Usage: def setLocation(url,windowName=None): return _window(windowName)+'location='+url
+        Usage:
+        def setLocation(url,windowName=None):
+            return _window(windowName)+'location='+url
         """
         if windowName is None:
             return javascriptTools.Javascript('')
-        return javascriptTools.Javascript(f'py_windows[{javascriptTools.toJsString(windowName)}]')
+        js=f'py_windows[{javascriptTools.toJsString(windowName)}]'
+        return javascriptTools.Javascript(js)
 
     def addJavascriptFunction(self,fn:str
         )->javascriptTools.Javascript:
         """
-        Adds the given javascript function code to the list of callable js functions
+        Adds the given javascript function code to the list of
+        callable js functions
         """
-        js=[]
-        js.append('var scriptTag=document.getElementsByTagName(\'script\')[0];')
-        js.append(f'scriptTag.innerHTML=scriptTag.innerHTML+{javascriptTools.toJsString(fn)};')
+        js:typing.List[str]=[]
+        js.append('var scriptTag=document.getElementsByTagName(\'script\')[0];') # noqa: E501
+        js.append(f'scriptTag.innerHTML=scriptTag.innerHTML+{javascriptTools.toJsString(fn)};') # noqa: E501
         return javascriptTools.Javascript('\n'.join(js))
 
-    def replaceElementContents(self,elementId:str,newHtml:typing.Union[str,Html]
+    def replaceElementContents(self,
+        elementId:str,
+        newHtml:typing.Union[str,Html]
         )->javascriptTools.Javascript:
         """
         Replace the entire contents within the given element's tag.
         """
-        js=f'{self._element(elementId)}.innerHTML+{javascriptTools.toJsString(newHtml)};'
+        js=f'{self._element(elementId)}.innerHTML+{javascriptTools.toJsString(newHtml)};' # noqa: E501
         return javascriptTools.Javascript(js)
 
     def appendElementContents(self,elementId:str,newHtml:typing.Union[str,Html]
@@ -74,10 +81,13 @@ class JavascriptGenerator:
         append html to the inside of an element
         """
         el=self._element(elementId)
-        js=f'{el}.innerHTML={el}.innerHTML+{javascriptTools.toJsString(newHtml)};'
+        js=f'{el}.innerHTML={el}.innerHTML+{javascriptTools.toJsString(newHtml)};' # noqa: E501
         return javascriptTools.Javascript(js)
 
-    def setElementAttribute(self,elementId:str,attributeName:str,attributeValue:typing.Any
+    def setElementAttribute(self,
+        elementId:str,
+        attributeName:str,
+        attributeValue:typing.Any
         )->javascriptTools.Javascript:
         """
         set a single attribute value within an element
@@ -85,14 +95,16 @@ class JavascriptGenerator:
         params=','.join([
             javascriptTools.toJsString(attributeName),
             javascriptTools.toJsString(attributeValue)])
-        return javascriptTools.Javascript(f'{self._element(elementId)}.setAttribute({params});')
+        js=f'{self._element(elementId)}.setAttribute({params});'
+        return javascriptTools.Javascript(js)
 
     def getElementAttribute(self,elementId:str,attributeName:str
         )->javascriptTools.Javascript:
         """
-        Typical usage would be like js=Javascript('var x='+getElementAttribute('MyButton','Value'))
+        Typical usage would be like
+        js=Javascript('var x='+getElementAttribute('MyButton','Value'))
         """
-        js=f'{self._element(elementId)}.getAttribute({javascriptTools.toJsString(attributeName)});'
+        js=f'{self._element(elementId)}.getAttribute({javascriptTools.toJsString(attributeName)});' # noqa: E501
         return javascriptTools.Javascript(js)
 
     def setElementStyle(self,elementId:str,cssStyle:str
@@ -102,7 +114,10 @@ class JavascriptGenerator:
         """
         return self.setElementAttribute(elementId,'style',cssStyle)
 
-    def setElementStyleValue(self,elementId:str,styleItemName:str,styleItemValue:typing.Any
+    def setElementStyleValue(self,
+        elementId:str,
+        styleItemName:str,
+        styleItemValue:typing.Any
         )->javascriptTools.Javascript:
         """
         Sets an css style value if it exists.  If not, adds it.
@@ -141,7 +156,8 @@ class JavascriptGenerator:
         create a canvas drawing context
         """
         canvasId=canvasId.replace("'","\\'")
-        return javascriptTools.Javascript(self._element(canvasId)+".getContext('2d')")
+        js=self._element(canvasId)+".getContext('2d')"
+        return javascriptTools.Javascript(js)
 
     def canvasFillRect(self,canvasId:str,
         x:int,y:int,w:int,h:int,
@@ -152,20 +168,22 @@ class JavascriptGenerator:
         """
         canvasContext=self.canvasContext(canvasId)
         params=','.join([str(p) for p in (x,y,w,h)])
-        retval=[]
+        retval:typing.List[str]=[]
         if color is not None:
-            retval.append(self.canvasFillStyle(canvasId,color))
+            retval.append(str(self.canvasFillStyle(canvasId,color)))
         retval.append(f"{canvasContext}.fillRect({params});")
         return javascriptTools.Javascript('\n'.join(retval))
 
-    def canvasClearRect(self,canvasId:str,x:int,y:int,w:int,h:int
+    def canvasClearRect(self,
+        canvasId:str,x:int,y:int,w:int,h:int
         )->javascriptTools.Javascript:
         """
         erase a rectangular section
         """
         canvasContext=self.canvasContext(canvasId)
         params=','.join([str(p) for p in (x,y,w,h)])
-        return javascriptTools.Javascript(f"{canvasContext}.clearRect({params});")
+        js=f"{canvasContext}.clearRect({params});"
+        return javascriptTools.Javascript(js)
 
     def canvasStrokeRect(self,canvasId:str,x:int,y:int,w:int,h:int
         )->javascriptTools.Javascript:
@@ -174,7 +192,8 @@ class JavascriptGenerator:
         """
         canvasContext=self.canvasContext(canvasId)
         params=','.join([str(p) for p in (x,y,w,h)])
-        return javascriptTools.Javascript(f"{canvasContext}.clearRect({params});")
+        js=f"{canvasContext}.clearRect({params});"
+        return javascriptTools.Javascript(js)
 
     def canvasShape(self,
         canvasId:str,
@@ -215,7 +234,8 @@ class JavascriptGenerator:
             counterClockwiseStr="true"
         else:
             counterClockwiseStr="false"
-        arcParams=[str(p) for p in (x,y,radius,startAngle,endAngle,counterClockwiseStr)]
+        arcParams=[str(p) for p in (
+            x,y,radius,startAngle,endAngle,counterClockwiseStr)]
         retval=[f"var ctx={canvasContext};"]
         retval.append("ctx.beginPath();")
         retval.append(f"arc({arcParams});")
@@ -233,6 +253,7 @@ class JavascriptGenerator:
         set the current fill style for the given canvas
         """
         canvasContext=self.canvasContext(canvasId)
+        js=""
         if hasColorTools:
             if color.hasAlpha: # type: ignore
                 js=f"{canvasContext}.fillStyle='rgba(%d,%d,%d,%d)';"%color
@@ -247,7 +268,7 @@ class JavascriptGenerator:
         startColor:typing.Optional[Color], # type: ignore
         endColor:typing.Optional[Color], # type: ignore
         x:int=0,y:int=0,x2:int=100,y2:int=100,
-        moreColors=None
+        moreColors:typing.Union[None,Color]=None
         )->javascriptTools.Javascript:
         """
         x,y,x2,y2 are the start and end points
@@ -312,21 +333,24 @@ class JavascriptGenerator:
         """
         bring up a simple ok message box
         """
-        return javascriptTools.Javascript(f'alert({javascriptTools.toJsString(text)});')
+        js=f'alert({javascriptTools.toJsString(text)});'
+        return javascriptTools.Javascript(js)
 
     def alert(self,text:typing.Union[str,typing.Any]
         )->javascriptTools.Javascript:
         """
         same as okBox (for those more familiar with javascript notation)
         """
-        return javascriptTools.Javascript(f'alert({javascriptTools.toJsString(text)});')
+        js=f'alert({javascriptTools.toJsString(text)});'
+        return javascriptTools.Javascript(js)
 
     def yesNoBox(self,text:typing.Dict[str,typing.Any]
         )->javascriptTools.Javascript:
         """
         bring up a simple yes/no dialog
         """
-        return javascriptTools.Javascript(f'confirm({javascriptTools.toJsString(text)});')
+        js=f'confirm({javascriptTools.toJsString(text)});'
+        return javascriptTools.Javascript(js)
 
     def promptBox(self,
         text:typing.Dict[str,typing.Any],
@@ -335,7 +359,7 @@ class JavascriptGenerator:
         """
         bring up a simple prompt dialog
         """
-        js=f'prompt({javascriptTools.toJsString(text)},{javascriptTools.toJsString(default)});'
+        js=f'prompt({javascriptTools.toJsString(text)},{javascriptTools.toJsString(default)});' # noqa: E501
         return javascriptTools.Javascript(js)
 
     def browseToPage(self,
@@ -352,20 +376,23 @@ class JavascriptGenerator:
         """
         url=asURL(url)
         if cgiParams is not None:
-            params=[]
+            params:typing.List[str]=[]
             for k,v in cgiParams.items():
                 k=k.replace("'","\\'")
                 v=v.replace("'","\\'")
                 params.append(f'{k}={v}')
             url=f'{url}?{"&".join(params)}'
-        js=f'{self._window(windowName)}.location="{javascriptTools.toJsString(url)}";'
+        js=f'{self._window(windowName)}.location="{javascriptTools.toJsString(url)}";' # noqa: E501
         return javascriptTools.Javascript(js)
 
-    def printPage(self,windowName:typing.Optional[str]=None)->javascriptTools.Javascript:
+    def printPage(self,
+        windowName:typing.Optional[str]=None
+        )->javascriptTools.Javascript:
         """
         send the current page to the printer
         """
-        return javascriptTools.Javascript(f'{self._window(windowName)}.print();')
+        js=f'{self._window(windowName)}.print();'
+        return javascriptTools.Javascript(js)
 
     def setStatusText(self,
         text:str,
@@ -376,21 +403,24 @@ class JavascriptGenerator:
 
         text can be any object
         """
-        js=f'{self._window(windowName)}.status={javascriptTools.toJsString(text)};'
+        js=f'{self._window(windowName)}.status={javascriptTools.toJsString(text)};' # noqa: E501
         return javascriptTools.Javascript(js)
 
     def createWindow(self,
         windowName:str,url:UrlCompatible,
         x:typing.Optional[int]=None,y:typing.Optional[int]=None,
         w:typing.Optional[int]=None,h:typing.Optional[int]=None,
-        resizable:bool=True,menubar:bool=True,status:bool=True,toolbar:bool=True,
+        resizable:bool=True,
+        menubar:bool=True,
+        status:bool=True,
+        toolbar:bool=True,
         cgiParams:typing.Optional[typing.Dict[str,typing.Any]]=None
         )->javascriptTools.Javascript:
         """
         TODO: Url is not encoded properly
         """
         url=asURL(url)
-        features=[]
+        features:typing.List[str]=[]
         if x is not None:
             features.append(f'screenX={x}')
         if y is not None:
@@ -407,16 +437,18 @@ class JavascriptGenerator:
             features.append('toolbar=no')
         if not status:
             features.append('statusbar=no')
-        features=','.join(features)
+        featuresStr=','.join(features)
         url=url.replace("'","\\'")
         if cgiParams is not None:
-            params=[]
+            params:typing.List[str]=[]
             for k,v in list(cgiParams.items()):
                 params.append(k.replace("'","\\'")+'='+v.replace("'","\\'"))
             url=f'{url}?{",".join(params)}'
         windowName=javascriptTools.toJsString(windowName)
-        openParams=','.join([javascriptTools.toJsString(url),windowName,features])
-        return javascriptTools.Javascript(f'py_windows[{windowName}]=open({openParams});')
+        openParams=','.join([
+            javascriptTools.toJsString(url),windowName,featuresStr])
+        js=f'py_windows[{windowName}]=open({openParams});'
+        return javascriptTools.Javascript(js)
 
     def selectWindow(self,windowName:str)->javascriptTools.Javascript:
         """
@@ -429,11 +461,15 @@ class JavascriptGenerator:
         close the window
         """
         window=self._window(windowName)
-        return javascriptTools.Javascript(f'{window}.close();{window}[0:-1]=NULL;')
+        js=f'{window}.close();{window}[0:-1]=NULL;'
+        return javascriptTools.Javascript(js)
 
-    def setWindowBounds(self,windowName:str,x:int,y:int,w:int,h:int)->javascriptTools.Javascript:
+    def setWindowBounds(self,
+        windowName:str,x:int,y:int,w:int,h:int
+        )->javascriptTools.Javascript:
         """
         set the window geometry
         """
         window=self._window(windowName)
-        return javascriptTools.Javascript(f'{window}.moveTo({x},{y});{window}.resizeTo({w},{h});')
+        js=f'{window}.moveTo({x},{y});{window}.resizeTo({w},{h});'
+        return javascriptTools.Javascript(js)

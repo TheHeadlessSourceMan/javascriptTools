@@ -13,7 +13,7 @@ class CustomString(str,collections.UserString): # type: ignore
     A class that acts like a string
     """
 
-    def __init__(self,s=''):
+    def __init__(self,s:str=''):
         collections.UserString.__init__(self,s)
 
     # ---- features I wish str had
@@ -69,5 +69,5 @@ class Javascript(CustomString):
     The reason it is needed is because sometimes we don't know whether
     a function is returning java script code or just plain text.
     """
-    def __init__(self,s=''):
+    def __init__(self,s:str=''):
         CustomString.__init__(self,s)

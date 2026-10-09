@@ -15,15 +15,17 @@ class JsHelper:
 
     def GetFunctions(self,dom:DomElementType)->typing.Dict[str,str]:
         """
-        Gets all the existing javascript functions in a {fnName:fnCode} dictionary
+        Gets all the existing javascript functions in a
+        {fnName:fnCode} dictionary
         """
         fns:typing.Dict[str,str]={}
         head=dom.getElementsByTagName('head')
-        if head is None or len(head)<1:
+        if head is None or not head: # type: ignore
             return fns
         else:
             head=head[0]
-        scriptTags:typing.Iterable[DomElementType]=head.getElementsByTagName('script')
+        scriptTags:typing.Iterable[DomElementType]=\
+            head.getElementsByTagName('script')
         for scriptTag in scriptTags:
             if scriptTag.getAttribute('language').lower()!='javascript' \
                 and scriptTag.getAttribute('type').lower()!='text/javascript':
@@ -40,19 +42,21 @@ class JsHelper:
         """
         Makes all the script tags in the given document universally compatible.
         """
+        from htmlTools import HtmlHelper
         scriptTags=dom.getElementsByTagName('script')
         hh=HtmlHelper()
         for scriptTag in scriptTags:
             if scriptTag.getAttribute('language').lower()!='javascript' \
                 and scriptTag.getAttribute('type').lower()!='text/javascript':
                 #
-                if scriptTag.getAttribute('language') and scriptTag.getAttribute('type'):
+                if scriptTag.getAttribute('language') \
+                    and scriptTag.getAttribute('type'):
                     continue # Some other kind of script.  Ignore it.
             # make sure the type identification is correct
             scriptTag.setAttribute('language','JavaScript')
             scriptTag.setAttribute('type','text/javascript')
             # make sure the contents are inside CDATA section
-            innerHtml=hh.getInnerHtml(scriptTag).strip()
+            innerHtml:str=hh.getInnerHtml(scriptTag).strip()
             if len(innerHtml)<2 or innerHtml[0:2]!='//':
                 innerHtml='//\n'+innerHtml+'\n//'
             if len(innerHtml)<10 or innerHtml[2:10]!='<![CDATA[':
@@ -82,12 +86,15 @@ class JsHelper:
             if line[0:8]=='function':
                 fnName=line[8:].split('(',1)[0].strip()
                 fnCode=''
-                # TODO: start braket counting until end of function then set fnCode
-                #   after that do something like fns[fnName]=fnCode
+                # TODO: start braket counting until end of function then set
+                # fnCode after that do something like fns[fnName]=fnCode
                 fns[fnName]=fnCode
         return fns
 
-    def _SetAllFns(self,dom:DomElementType,fnDict:typing.Dict[str,str])->None:
+    def _SetAllFns(self,
+        dom:DomElementType,
+        fnDict:typing.Dict[str,str]
+        )->None:
         """
         Sets all functions in the dom's javascript.
 
@@ -97,14 +104,14 @@ class JsHelper:
         if domDocument is None:
             raise Exception('No document assoicated with HTML')
         head=dom.getElementsByTagName('head')
-        if head is None or len(head)<1:
+        if head is None or not head: # type: ignore
             head=domDocument.createElement('head')
             dom.getElementsByTagName('html')[0].appendChild(head)
         else:
             head=head[0]
         first=True
         scriptTags=head.getElementsByTagName('script')
-        if scriptTags is None or len(scriptTags)<1:
+        if scriptTags is None or not scriptTags: # type: ignore
             scriptTag=domDocument.createElement('script')
             scriptTag.setAttribute('language','JavaScript')
             scriptTag.setAttribute('type','text/javascript')
@@ -122,9 +129,13 @@ class JsHelper:
             else:
                 head.removeChild(scriptTag)
 
-    def CreateMissingFunctions(self,dom:DomElementType,fnDict:typing.Dict[str,str])->None:
+    def CreateMissingFunctions(self,
+        dom:DomElementType,
+        fnDict:typing.Dict[str,str]
+        )->None:
         """
-        Adds all missing functions in the {fnName:fnCode} dictionary to the given dom document.
+        Adds all missing functions in the {fnName:fnCode} dictionary
+        to the given dom document.
 
         Will create html parent tags as required.
 
